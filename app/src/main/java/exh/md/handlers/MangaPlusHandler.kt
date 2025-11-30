@@ -2,7 +2,7 @@ package exh.md.handlers
 
 import eu.kanade.tachiyomi.network.GET
 import eu.kanade.tachiyomi.network.awaitSuccess
-import eu.kanade.tachiyomi.network.interceptor.rateLimitHost
+import eu.kanade.tachiyomi.network.interceptor.reallyApplyRateLimitHost
 import eu.kanade.tachiyomi.source.model.Page
 import exh.md.dto.MangaPlusPage
 import exh.md.dto.MangaPlusResponse
@@ -29,8 +29,8 @@ class MangaPlusHandler(currentClient: OkHttpClient) {
 
     val client: OkHttpClient = currentClient.newBuilder()
         .addInterceptor(::imageIntercept)
-        .rateLimitHost(API_URL.toHttpUrl(), 1)
-        .rateLimitHost(WEB_URL.toHttpUrl(), 2)
+        .reallyApplyRateLimitHost(API_URL.toHttpUrl(), 1)
+        .reallyApplyRateLimitHost(WEB_URL.toHttpUrl(), 2)
         .build()
 
     suspend fun fetchPageList(chapterId: String, dataSaver: Boolean): List<Page> {

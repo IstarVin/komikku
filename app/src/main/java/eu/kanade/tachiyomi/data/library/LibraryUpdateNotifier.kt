@@ -16,11 +16,8 @@ import eu.kanade.presentation.util.formatChapterNumber
 import eu.kanade.tachiyomi.R
 import eu.kanade.tachiyomi.core.security.SecurityPreferences
 import eu.kanade.tachiyomi.data.LibraryUpdateStatus
-import eu.kanade.tachiyomi.data.download.Downloader
-import eu.kanade.tachiyomi.data.notification.NotificationHandler
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
 import eu.kanade.tachiyomi.data.notification.Notifications
-import eu.kanade.tachiyomi.source.UnmeteredSource
 import eu.kanade.tachiyomi.ui.main.MainActivity
 import eu.kanade.tachiyomi.util.lang.chop
 import eu.kanade.tachiyomi.util.system.cancelNotification
@@ -33,9 +30,7 @@ import tachiyomi.core.common.i18n.pluralStringResource
 import tachiyomi.core.common.i18n.stringResource
 import tachiyomi.core.common.util.lang.launchUI
 import tachiyomi.domain.chapter.model.Chapter
-import tachiyomi.domain.library.model.LibraryManga
 import tachiyomi.domain.manga.model.Manga
-import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.i18n.MR
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
@@ -47,7 +42,6 @@ class LibraryUpdateNotifier(
     private val context: Context,
 
     private val securityPreferences: SecurityPreferences = Injekt.get(),
-    private val sourceManager: SourceManager = Injekt.get(),
 ) {
     // KMK -->
     private val libraryUpdateStatus: LibraryUpdateStatus = Injekt.get()
@@ -118,34 +112,6 @@ class LibraryUpdateNotifier(
                 .setProgress(total, current, false)
                 .build(),
         )
-    }
-
-    /**
-     * Warn when excessively checking any single source.
-     */
-    fun showQueueSizeWarningNotificationIfNeeded(mangaToUpdate: List<LibraryManga>) {
-        val maxUpdatesFromSource = mangaToUpdate
-            .groupBy { it.manga.source }
-            .filterKeys { sourceManager.get(it) !is UnmeteredSource }
-            .maxOfOrNull { it.value.size } ?: 0
-
-        if (maxUpdatesFromSource <= MANGA_PER_SOURCE_QUEUE_WARNING_THRESHOLD) {
-            return
-        }
-
-        context.notify(
-            Notifications.ID_LIBRARY_SIZE_WARNING,
-            Notifications.CHANNEL_LIBRARY_PROGRESS,
-        ) {
-            setContentTitle(context.stringResource(MR.strings.label_warning))
-            setStyle(
-                NotificationCompat.BigTextStyle().bigText(context.stringResource(MR.strings.notification_size_warning)),
-            )
-            setSmallIcon(R.drawable.ic_warning_white_24dp)
-            setColor(ContextCompat.getColor(context, R.color.ic_launcher))
-            setTimeoutAfter(Downloader.WARNING_NOTIF_TIMEOUT_MS)
-            setContentIntent(NotificationHandler.openUrl(context, HELP_WARNING_URL))
-        }
     }
 
     /**
@@ -289,19 +255,16 @@ class LibraryUpdateNotifier(
                 ),
             )
             // Download chapters action
-            // Only add the action when chapters is within threshold
-            if (chapters.size <= Downloader.CHAPTERS_PER_SOURCE_QUEUE_WARNING_THRESHOLD) {
-                addAction(
-                    android.R.drawable.stat_sys_download_done,
-                    context.stringResource(MR.strings.action_download),
-                    NotificationReceiver.downloadChaptersPendingBroadcast(
-                        context,
-                        manga,
-                        chapters,
-                        Notifications.ID_NEW_CHAPTERS,
-                    ),
-                )
-            }
+            addAction(
+                android.R.drawable.stat_sys_download_done,
+                context.stringResource(MR.strings.action_download),
+                NotificationReceiver.downloadChaptersPendingBroadcast(
+                    context,
+                    manga,
+                    chapters,
+                    Notifications.ID_NEW_CHAPTERS,
+                ),
+            )
         }.build()
     }
 
@@ -401,12 +364,8 @@ class LibraryUpdateNotifier(
         )
     }
 
-    companion object {
-        const val HELP_WARNING_URL = "https://komikku-app.github.io/docs/faq/library#why-am-i-warned-about-large-bulk-updates-and-downloads"
-    }
 }
 
 private const val NOTIF_MAX_CHAPTERS = 5
 private const val NOTIF_TITLE_MAX_LEN = 45
 private const val NOTIF_ICON_SIZE = 192
-private const val MANGA_PER_SOURCE_QUEUE_WARNING_THRESHOLD = 60

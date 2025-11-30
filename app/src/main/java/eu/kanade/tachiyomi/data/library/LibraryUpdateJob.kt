@@ -246,8 +246,6 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                             else -> true
                         }
                 }
-
-            notifier.showQueueSizeWarningNotificationIfNeeded(mangaToUpdate)
             return
         }
         // KMK <--
@@ -366,8 +364,6 @@ class LibraryUpdateJob(private val context: Context, workerParams: WorkerParamet
                     it.manga.title
                 },
             )
-
-        notifier.showQueueSizeWarningNotificationIfNeeded(mangaToUpdate)
 
         if (skippedUpdates.isNotEmpty()) {
             // TODO: surface skipped reasons to user?

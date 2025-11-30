@@ -46,22 +46,6 @@ jobs:
           java-version: 17
           distribution: temurin
 
-      - name: Write google-services.json
-        if: github.repository == github.event.pull_request.head.repo.full_name
-        uses: DamianReeves/write-file-action@6929a9a6d1807689191dcc8bbe62b54d70a32b42 # v1.3
-        with:
-          path: app/google-services.json
-          contents: ${{ secrets.GOOGLE_SERVICES_JSON }}
-          write-mode: overwrite
-
-      - name: Write client_secrets.json
-        if: github.repository == github.event.pull_request.head.repo.full_name
-        uses: DamianReeves/write-file-action@6929a9a6d1807689191dcc8bbe62b54d70a32b42 # v1.3
-        with:
-          path: app/src/main/assets/client_secrets.json
-          contents: ${{ secrets.GOOGLE_CLIENT_SECRETS_JSON }}
-          write-mode: overwrite
-
       - name: Set up gradle
         uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5
 
@@ -69,12 +53,7 @@ jobs:
         run: ./gradlew spotlessCheck
 
       - name: Build app
-        if: github.repository == github.event.pull_request.head.repo.full_name
-        run: ./gradlew assemblePreview -Pinclude-telemetry -Penable-updater
-
-      - name: Build app
-        if: github.repository != github.event.pull_request.head.repo.full_name
-        run: ./gradlew assemblePreview
+        run: ./gradlew assembleFoss
 
       - name: Run unit tests
         run: ./gradlew testReleaseUnitTest
@@ -83,7 +62,7 @@ jobs:
         if: github.repository == github.event.pull_request.head.repo.full_name
         uses: r0adkll/sign-android-release@f30bdd30588842ac76044ecdbd4b6d0e3e813478
         with:
-          releaseDirectory: app/build/outputs/apk/preview
+          releaseDirectory: app/build/outputs/apk/foss
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -108,16 +87,16 @@ jobs:
           echo "VERSION_TAG=$version_tag" >> $GITHUB_OUTPUT
           echo "COMMIT_COUNT=$commit_count"
           echo "COMMIT_COUNT=$commit_count" >> $GITHUB_OUTPUT
-          mv app/build/outputs/apk/preview/app-universal-preview${{ steps.signed_filename.outputs.SIGNED_TRAIL }}.apk Komikku-$version_tag-r$commit_count.apk
+          mv app/build/outputs/apk/foss/app-universal-foss${{ steps.signed_filename.outputs.SIGNED_TRAIL }}.apk Komikku-foss-$version_tag-r$commit_count.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
-          name: Komikku-${{ steps.current_commit.outputs.VERSION_TAG }}-r${{ steps.current_commit.outputs.COMMIT_COUNT }}.apk
+          name: Komikku-foss-${{ steps.current_commit.outputs.VERSION_TAG }}-r${{ steps.current_commit.outputs.COMMIT_COUNT }}.apk
           path: ./*.apk
 
       - name: Upload mapping
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: mapping-${{ github.sha }}
-          path: app/build/outputs/mapping/preview
+          path: app/build/outputs/mapping/foss

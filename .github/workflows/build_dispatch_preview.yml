@@ -1,5 +1,7 @@
 name: Remote Dispatch Preview Build
 # Manually send a dispatch to build preview
+# NOTE: This workflow dispatches to external repo komikku-app/komikku-preview
+# That external repo's workflow needs to be updated separately to build FOSS variant
 
 on:
   # Dispatch or Manual triggers

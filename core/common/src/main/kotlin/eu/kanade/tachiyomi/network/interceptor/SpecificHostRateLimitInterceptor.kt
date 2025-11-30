@@ -52,9 +52,6 @@ fun OkHttpClient.Builder.rateLimitHost(
     period: Duration = 1.seconds,
 ) = this
 
-fun OkHttpClient.Builder.reallyApplyRateLimit(permits: Int, period: Duration = 1.seconds) =
-    addInterceptor(RateLimitInterceptor(null, permits, period))
-
 /**
  * An OkHttp interceptor that handles given url host's rate limiting.
  *

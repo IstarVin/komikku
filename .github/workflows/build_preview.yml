@@ -132,11 +132,19 @@ jobs:
       - name: Set up gradle
         uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5
 
+      - name: Decode Keystore
+        run: echo "${{ secrets.SIGNING_KEY }}" | base64 -d > app/keystore.jks
+
       - name: Check code format
         run: ./gradlew spotlessCheck
 
-      - name: Build app
+      - name: Build signed app
         run: ./gradlew assembleFoss
+        env:
+          KEYSTORE_FILE: keystore.jks
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          ALIAS: ${{ secrets.ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Run unit tests
         run: ./gradlew testReleaseUnitTest
@@ -158,39 +166,28 @@ jobs:
         with:
           merge-multiple: true
 
-      - name: Sign APK
-        uses: r0adkll/sign-android-release@f30bdd30588842ac76044ecdbd4b6d0e3e813478
-        with:
-          releaseDirectory: app/build/outputs/apk/foss
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-        env:
-          BUILD_TOOLS_VERSION: '35.0.1'
-
       - name: Get SHA & clean up build artifacts
         id: get_sha
         run: |
           set -e
 
-          mv app/build/outputs/apk/foss/app-universal-foss-signed.apk Komikku-foss-${{ needs.prepare-build.outputs.TAG_NAME }}.apk
+          mv app/build/outputs/apk/foss/release/app-universal-foss-release.apk Komikku-foss-${{ needs.prepare-build.outputs.TAG_NAME }}.apk
           sha=`sha256sum Komikku-foss-${{ needs.prepare-build.outputs.TAG_NAME }}.apk | awk '{ print $1 }'`
           echo "APK_UNIVERSAL_SHA=$sha" >> $GITHUB_OUTPUT
 
-          mv app/build/outputs/apk/foss/app-arm64-v8a-foss-signed.apk Komikku-foss-arm64-v8a-${{ needs.prepare-build.outputs.TAG_NAME }}.apk
+          mv app/build/outputs/apk/foss/release/app-arm64-v8a-foss-release.apk Komikku-foss-arm64-v8a-${{ needs.prepare-build.outputs.TAG_NAME }}.apk
           sha=`sha256sum Komikku-foss-arm64-v8a-${{ needs.prepare-build.outputs.TAG_NAME }}.apk | awk '{ print $1 }'`
           echo "APK_ARM64_V8A_SHA=$sha" >> $GITHUB_OUTPUT
 
-          mv app/build/outputs/apk/foss/app-armeabi-v7a-foss-signed.apk Komikku-foss-armeabi-v7a-${{ needs.prepare-build.outputs.TAG_NAME }}.apk
+          mv app/build/outputs/apk/foss/release/app-armeabi-v7a-foss-release.apk Komikku-foss-armeabi-v7a-${{ needs.prepare-build.outputs.TAG_NAME }}.apk
           sha=`sha256sum Komikku-foss-armeabi-v7a-${{ needs.prepare-build.outputs.TAG_NAME }}.apk | awk '{ print $1 }'`
           echo "APK_ARMEABI_V7A_SHA=$sha" >> $GITHUB_OUTPUT
 
-          mv app/build/outputs/apk/foss/app-x86-foss-signed.apk Komikku-foss-x86-${{ needs.prepare-build.outputs.TAG_NAME }}.apk
+          mv app/build/outputs/apk/foss/release/app-x86-foss-release.apk Komikku-foss-x86-${{ needs.prepare-build.outputs.TAG_NAME }}.apk
           sha=`sha256sum Komikku-foss-x86-${{ needs.prepare-build.outputs.TAG_NAME }}.apk | awk '{ print $1 }'`
           echo "APK_X86_SHA=$sha" >> $GITHUB_OUTPUT
 
-          mv app/build/outputs/apk/foss/app-x86_64-foss-signed.apk Komikku-foss-x86_64-${{ needs.prepare-build.outputs.TAG_NAME }}.apk
+          mv app/build/outputs/apk/foss/release/app-x86_64-foss-release.apk Komikku-foss-x86_64-${{ needs.prepare-build.outputs.TAG_NAME }}.apk
           sha=`sha256sum Komikku-foss-x86_64-${{ needs.prepare-build.outputs.TAG_NAME }}.apk | awk '{ print $1 }'`
           echo "APK_X86_64_SHA=$sha" >> $GITHUB_OUTPUT
 

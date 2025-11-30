@@ -37,6 +37,18 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            val keystoreFile = System.getenv("KEYSTORE_FILE")
+            if (keystoreFile != null) {
+                storeFile = file(keystoreFile)
+                storePassword = System.getenv("KEY_STORE_PASSWORD") ?: ""
+                keyAlias = System.getenv("ALIAS") ?: ""
+                keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+            }
+        }
+    }
+
     buildTypes {
         val debug by getting {
             applicationIdSuffix = ".dev"
@@ -50,6 +62,8 @@ android {
             proguardFiles("proguard-android-optimize.txt", "proguard-rules.pro")
 
             buildConfigField("String", "BUILD_TIME", "\"${getBuildTime(useLastCommitTime = true)}\"")
+
+            signingConfig = signingConfigs.getByName("release")
         }
 
         val commonMatchingFallbacks = listOf(release.name)
@@ -67,6 +81,8 @@ android {
             initWith(release)
 
             applicationIdSuffix = ".foss"
+
+            signingConfig = signingConfigs.getByName("release")
 
             matchingFallbacks.addAll(commonMatchingFallbacks)
         }
@@ -90,7 +106,7 @@ android {
             versionNameSuffix = "${debug.versionNameSuffix}-benchmark"
             applicationIdSuffix = ".benchmark"
 
-            signingConfig = debug.signingConfig
+            signingConfig = signingConfigs.getByName("release")
 
             matchingFallbacks.addAll(commonMatchingFallbacks)
         }

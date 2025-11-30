@@ -363,7 +363,6 @@ class LibraryUpdateNotifier(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
     }
-
 }
 
 private const val NOTIF_MAX_CHAPTERS = 5

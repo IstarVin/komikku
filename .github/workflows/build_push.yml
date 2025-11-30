@@ -5,8 +5,8 @@ on:
       # - develop
       - master
     paths:
-      - '**'
-      - '!**.md'
+      - "**"
+      - "!**.md"
   # pull_request:
   #   paths-ignore:
   #     - '**.md'
@@ -23,7 +23,7 @@ permissions:
 jobs:
   build:
     name: Build app
-    runs-on: 'ubuntu-24.04'
+    runs-on: "ubuntu-24.04"
 
     steps:
       - name: Clone repo
@@ -47,7 +47,7 @@ jobs:
         run: ./gradlew spotlessCheck
 
       - name: Build signed app
-        run: ./gradlew assembleFoss
+        run: ./gradlew assembleFoss -Penable-updater
         env:
           KEYSTORE_FILE: keystore.jks
           KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}

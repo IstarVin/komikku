@@ -136,6 +136,7 @@ android {
                 "libquickjs",
                 "libsqlite3x",
             )
+                //noinspection WrongGradleMethod
                 .map { "**/$it.so" }
         }
         resources {

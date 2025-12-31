@@ -76,8 +76,13 @@ jobs:
         id: signed_filename
         if: github.repository == github.event.pull_request.head.repo.full_name
         run: |
-          echo "SIGNED_TRAIL=-release" >> $GITHUB_OUTPUT
-          echo "APK_SUBDIR=release/" >> $GITHUB_OUTPUT
+          echo "APK_NAME=app-universal-foss.apk" >> $GITHUB_OUTPUT
+
+      - name: Unsigned File name
+        id: unsigned_filename
+        if: github.repository != github.event.pull_request.head.repo.full_name
+        run: |
+          echo "APK_NAME=app-universal-foss.apk" >> $GITHUB_OUTPUT
 
       - name: Rename apk
         id: current_commit
@@ -90,7 +95,7 @@ jobs:
           echo "VERSION_TAG=$version_tag" >> $GITHUB_OUTPUT
           echo "COMMIT_COUNT=$commit_count"
           echo "COMMIT_COUNT=$commit_count" >> $GITHUB_OUTPUT
-          mv app/build/outputs/apk/foss/${{ steps.signed_filename.outputs.APK_SUBDIR }}app-universal-foss${{ steps.signed_filename.outputs.SIGNED_TRAIL }}.apk Komikku-foss-$version_tag-r$commit_count.apk
+          mv app/build/outputs/apk/foss/${{ steps.signed_filename.outputs.APK_NAME }}${{ steps.unsigned_filename.outputs.APK_NAME }} Komikku-foss-$version_tag-r$commit_count.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0

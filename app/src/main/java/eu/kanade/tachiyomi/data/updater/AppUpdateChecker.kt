@@ -37,7 +37,7 @@ class AppUpdateChecker(
                 GetApplicationRelease.Arguments(
                     isFoss = isFossBuildType,
                     isPreview = isPreviewBuildType || peekIntoPreview,
-                    commitCount = BuildConfig.COMMIT_COUNT.toInt(),
+                    commitCount = BuildConfig.COMMIT_COUNT.toIntOrNull() ?: 0,
                     versionName = BuildConfig.VERSION_NAME,
                     repository = getGithubRepo(peekIntoPreview),
                     forceCheck = forceCheck,
@@ -83,7 +83,7 @@ class AppUpdateChecker(
                 GetApplicationRelease.Arguments(
                     isFoss = isFossBuildType,
                     isPreview = isPreviewBuildType || peekIntoPreview,
-                    commitCount = BuildConfig.COMMIT_COUNT.toInt(),
+                    commitCount = BuildConfig.COMMIT_COUNT.toIntOrNull() ?: 0,
                     versionName = BuildConfig.VERSION_NAME,
                     repository = getGithubRepo(peekIntoPreview),
                 ),
@@ -97,9 +97,9 @@ val GITHUB_REPO: String by lazy { getGithubRepo() }
 
 fun getGithubRepo(peekIntoPreview: Boolean = false): String =
     if (isPreviewBuildType || peekIntoPreview) {
-        "komikku-app/komikku-preview"
+        "IstarVin/komikku-preview"
     } else {
-        "komikku-app/komikku"
+        "IstarVin/komikku"
     }
 
 val RELEASE_TAG: String by lazy { getReleaseTag() }

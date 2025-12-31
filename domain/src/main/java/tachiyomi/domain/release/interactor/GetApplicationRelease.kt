@@ -91,23 +91,28 @@ class GetApplicationRelease(
         return if (isPreview) {
             // Preview builds: based on releases in "komikku-app/komikku-preview" repo
             // tagged as something like "r1234"
-            newVersion.toInt() > commitCount
+            val newVersionInt = newVersion.toIntOrNull() ?: return false
+            newVersionInt > commitCount
         } else {
             // Release builds: based on releases in "komikku-app/komikku" repo
             // tagged as something like "v0.1.2"
             val oldVersion = versionName.replace("[^\\d.]".toRegex(), "")
 
-            val newSemVer = newVersion.split(".").map { it.toInt() }
-            val oldSemVer = oldVersion.split(".").map { it.toInt() }
+            val newSemVer = newVersion.split(".").mapNotNull { it.toIntOrNull() }
+            val oldSemVer = oldVersion.split(".").mapNotNull { it.toIntOrNull() }
+
+            if (newSemVer.isEmpty() || oldSemVer.isEmpty()) return false
 
             oldSemVer.mapIndexed { index, i ->
-                if (newSemVer[index] > i) {
+                val newPart = newSemVer.getOrElse(index) { 0 }
+                if (newPart > i) {
                     return true
                 }
-                if (newSemVer[index] < i) return false
+                if (newPart < i) return false
             }
 
-            false
+            // If newSemVer has more parts, it's a newer version (e.g., 1.13.5.3 > 1.13.5)
+            newSemVer.size > oldSemVer.size
         }
     }
 

@@ -407,7 +407,7 @@ class MainActivity : BaseActivity() {
                 Preference.appStateKey("preview_last_version_code"),
                 0,
             )
-            val previewCurrentVersion = BuildConfig.COMMIT_COUNT.toInt()
+            val previewCurrentVersion = BuildConfig.COMMIT_COUNT.toIntOrNull() ?: 0
             var isCheckingWhatsNew by remember { mutableStateOf(false) }
             // KMK <--
 

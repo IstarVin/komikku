@@ -74,20 +74,33 @@ class ReleaseServiceImpl(
     // KMK <--
 
     private fun getDownloadLink(release: GithubRelease, isFoss: Boolean): String? {
-        val map = release.assets.associate { asset ->
-            BUILD_TYPES.find { "-$it" in asset.name } to asset.downloadLink
+        // For FOSS builds, look for APKs with "-foss-" in the name
+        // For non-FOSS builds, look for APKs without "-foss-" in the name
+        val matchingAssets = release.assets.filter { asset ->
+            val hasFoss = "-$FOSS-" in asset.name || "-$FOSS." in asset.name
+            if (isFoss) hasFoss else !hasFoss
         }
 
-        return if (!isFoss) {
-            map[Build.SUPPORTED_ABIS[0]] ?: map[null]
-        } else {
-            map[FOSS]
+        // Build a map of architecture -> download link
+        val archMap = matchingAssets.associate { asset ->
+            val arch = ARCHITECTURES.find { "-$it" in asset.name }
+            arch to asset.downloadLink
         }
+
+        // Return architecture-specific APK or universal APK
+        val result = archMap[Build.SUPPORTED_ABIS[0]] ?: archMap[null]
+
+        // If no matching APK found for non-FOSS, fall back to FOSS builds
+        if (result == null && !isFoss) {
+            return getDownloadLink(release, isFoss = true)
+        }
+
+        return result
     }
 
     companion object {
         private const val FOSS = "foss"
-        private val BUILD_TYPES = listOf(FOSS, "arm64-v8a", "armeabi-v7a", "x86_64", "x86")
+        private val ARCHITECTURES = listOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86")
 
         /**
          * Regular expression that matches a mention to a valid GitHub username, like it's

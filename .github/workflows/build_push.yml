@@ -55,6 +55,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Run unit tests
+        id: unit_tests
         run: ./gradlew testReleaseUnitTest
 
       - name: Rename apk
